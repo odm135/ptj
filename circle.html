@@ -147,7 +147,8 @@
             #output {
                 font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
                 width: 100%;
-                height: 780px;
+                min-height: 300px;
+                height: 300px;
                 padding: 14px;
                 border: 2px solid #000;
                 border-radius: 6px;
@@ -175,7 +176,7 @@
         </header>
 
         <div class="form">
-            <label>半径:<input id="radius" type="number" min="1" max="128" value="10"></label>
+            <label>半径:<input id="radius" type="number" min="1" max="500" value="10"></label>
             <label>塗りつぶし:<input id="fill" type="checkbox"></label>
             <button id="gene" onClick="geneCommands()">コマンド生成</button>
         </div>
@@ -200,7 +201,8 @@
             if (localStorage.getItem("dark") === "true") {
                 document.body.classList.add("dark");
             }
-            
+
+
             // コピー処理
             var copyTimerId = null;
 
@@ -218,6 +220,7 @@
             function hideCopyMessage() {
                 document.getElementById("copy-msg").classList.remove("show");
             }
+
 
             // ダウンロード処理
             function download() {
@@ -239,14 +242,31 @@
             }
 
 
+            // outputのtextareaの高さ設定
+            function resizeOutput() {
+                const output = document.getElementById("output");
+                const rect = output.getBoundingClientRect();
+
+                let height = window.innerHeight - rect.top - 50;
+
+                if (height < 300) {
+                    height = 300;
+                    output.style.resize = "vertical";
+                }
+                output.style.height = height + "px";
+            }
+
+            window.addEventListener("load", resizeOutput);
+
+
             // コマンド生成
             function geneCommands() {
                 const r = Number(document.getElementById("radius").value) - 1;
                 const fill = document.getElementById("fill").checked;
                 let lines = [];
 
-                if (!Number.isInteger(r) || r < 0) {
-                    lines.push("半径は1以上の整数で指定してください");
+                if (!Number.isInteger(r) || r < 0 || 500 < r) {
+                    lines.push("半径は1以上500以下の整数で指定してください");
                     document.getElementById("output").value = lines.join("\n");
 
                     document.getElementById("copy").disabled = true;
@@ -255,8 +275,9 @@
                 }
 
                 lines.push("# 半径" + (r + 1) + "の円形にブロックを配置するコマンド");
-                if (fill) lines.push("# 塗りつぶしあり\n");
-                else lines.push("# 塗りつぶしなし\n");
+                if (fill) lines.push("# 塗りつぶしあり");
+                else lines.push("# 塗りつぶしなし");
+                lines.push("# 実行例: /function <namespace>:circle {block:stone}\n");
 
                 const r2 = r * r;
 
