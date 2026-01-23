@@ -13,37 +13,6 @@
 
         <style>
 
-            body {
-                margin: 0 auto;
-                padding: 30px;
-                max-width: 1200px;
-                font-size: 18px;
-            }
-            
-            header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 24px;
-            }
-            body.dark header {
-                color: #FFFFFF;
-            }
-
-            header h1 {
-                font-size: 30px;
-            }
-
-            header i {
-                font-size: 30px;
-                cursor: pointer;
-            }
-
-            header .icons {
-                margin-left: auto;
-                display: flex;
-                gap: 14px;
-            }
-
             .form {
                 display: flex;
                 gap: 24px;
@@ -191,18 +160,8 @@
             <textarea readonly id="output" placeholder="ここにコマンドが表示されます" spellcheck="false"></textarea>
         </div>
     
+        <script src="js/script.js"></script>
         <script>
-            // ダークモード切替
-            function darkmode() {
-                document.body.classList.toggle("dark");
-                localStorage.setItem("dark", document.body.classList.contains("dark"));
-            }
-
-            if (localStorage.getItem("dark") === "true") {
-                document.body.classList.add("dark");
-            }
-
-
             // コピー処理
             var copyTimerId = null;
 

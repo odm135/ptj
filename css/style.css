@@ -12,3 +12,34 @@ a {
     color: inherit;
     text-decoration: none;
 }
+
+body {
+    margin: 0 auto;
+    padding: 30px;
+    max-width: 1200px;
+    font-size: 18px;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+}
+body.dark header {
+    color: #FFFFFF;
+}
+
+header h1 {
+    font-size: 30px;
+}
+
+header i {
+    font-size: 30px;
+    cursor: pointer;
+}
+
+header .icons {
+    margin-left: auto;
+    display: flex;
+    gap: 14px;
+}
