@@ -2,71 +2,270 @@
 <html lang="ja">
 
     <head>
-        <meta charset="utf-8"/>
+        <meta charset="utf-8">
         <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>コマンド拡大表示</title>
+        <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
         <link rel="stylesheet" href="css/reset.css">
         <link rel="stylesheet" href="css/style.css">
 
         <style>
+
+            @font-face {
+                font-family: "MinecraftChat";
+                src: url("https://cdn.jsdelivr.net/gh/IdreesInc/Monocraft@main/dist/Monocraft-ttf/Monocraft.ttf")
+                    format("truetype");
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+
+            @font-face {
+                font-family: "JFDotK14";
+                src: url("font/JF-Dot-K14.ttf") format("truetype");
+                font-display: swap;
+            }
+
+
             body {
                 max-width: none;
             }
 
-            #command {
-                border: 1px solid #000;
-                border-radius: 6px;
-                width: 100%;
+            .form {
+                display: flex;
                 height: 50px;
-                resize: none;
+                gap: 10px;
+                margin: 10px 0 15px;
+                
+            }
+
+            #command {
+                flex: 1;
+                min-width: 0;
+                border-radius: 6px;
                 padding: 12px 20px;
+                resize: none;
+            }
+
+            .font-wrap {
+                position: relative;
+                width: 180px;
+            }
+            .font-wrap::after {
+                position: absolute;
+                display: block;
+                content: '';
+                width: 10px;
+                height: 10px;
+
+                top: 50%;
+                right: 18px;
+                margin-top: -3px;
+
+                border-bottom: 1.5px solid #181818;
+                border-right: 1.5px solid #181818;
+
+                transform: rotate(45deg) translateY(-50%);
+                transform-origin: 50% 0;
+
+                pointer-events: none;
+            }
+            .dark .font-wrap::after {
+                border-color: #F8F8F8;
+            }
+
+            #font {
+                width: 100%;
+                height: 100%;
+                border-radius: 6px;
+                padding: 12px 20px;
+                cursor: pointer;
             }
             
-            #font {
-    align-self: flex-end;
+            .vs {
+                font-family: Consolas, 'Cascadia Mono', monospace;
+            }
+            .mc {
+                font-family: 'MinecraftChat','JFDotK14','Noto Sans JP',sans-serif;
+            }
 
-    margin: 8px 0 8px auto;
-    padding: 6px 10px;
+            .size-wrap {
+                width: 180px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                border-radius: 6px;
+                padding: 6px 10px;
+            }
 
-    height: 36px;
-    font-size: 14px;
+            .upper-wrap {
+                width: 110px;
+                white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                border-radius: 6px;
+                padding: 0 10px;
+            }
 
-    border-radius: 6px;
-    cursor: pointer;
-}
+            #upper {
+                transform: scale(1.5);
+                margin-left: 5px;
+                cursor: pointer;
+            }
+
+            #output-wrap {
+                position: relative;
+                width: 100%;
+                border-radius: 8px;
+                padding: 12px 20px;
+            }
+
+            #output {
+                white-space: pre-wrap;
+                word-break: break-word;
+                line-height: 1.2;
+            }
+
+            #output:empty::before {
+                content: attr(data-placeholder);
+                color: #999;
+                font-weight: normal;
+                pointer-events: none;
+            }
+
+            #output-wrap button {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+
+                font-size: 24px;
+            }
+            
+            .upper-origin {
+                color: red;
+                font-weight: bold;
+            }
+
             </style>
     </head>
 
-    <body>
+    <body class="bg-base">
         <header>
             <h1>コマンド拡大表示</h1>
             <div class="icons">
-                <i onClick="darkmode()" title="ダークモード切替" class="fa-solid fa-circle-half-stroke"></i>
-                <a href="index.html"><i class="fa-solid fa-house"></i></a>
+                <button onClick="darkmode()" class="icon" title="ダークモード切替"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
             </div>
         </header>
 
-        <textarea id="command" placeholder="拡大表示するコマンドを入力" spellcheck="false"></textarea>
+        <div class="form">
+            <textarea class="bg-surface" id="command" placeholder="拡大表示するコマンドを入力" spellcheck="false"></textarea>
 
-        <select id="font" aria-label="フォント選択" title="フォント選択">
-            <option value="inherit">デフォルト</option>
-            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-        </select>
+            <div class="font-wrap">
+                <select class="bg-surface" id="font" title="フォント選択">
+                    <option value="'Noto Sans JP', sans-serif">デフォルト</option>
+                    <option value="Consolas, 'Cascadia Mono', 'Courier New', monospace" class="vs">VS Code風</option>
+                    <option value="'MinecraftChat','JFDotK14','Noto Sans JP',sans-serif" class="mc">Minecraft風</option>
+                </select>
+            </div>
 
-        <textarea readonly id="output" placeholder="ここにコマンドが表示されます" spellcheck="false"></textarea>
-        wip
+            <div class="size-wrap bg-surface">
+                <label for="size">文字サイズ</label>
+                <input id="size" type="range" min="24" max="168" value="96" step="1">
+            </div>
+
+            <div class="upper-wrap bg-surface">
+                <label for="upper">大文字:</label>
+                <input id="upper" type="checkbox">
+            </div>
+        </div>
+
+        <div id="output-wrap" class="bg-surface">
+            <div id="output" data-placeholder="ここにコマンドが表示されます"></div>
+            <button onClick="fullscreen()"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+        </div>
+        
         <script src="js/script.js"></script>
         <script>
-            const command = document.getElementById("command");
-            const output = document.getElementById("output");
+            
+            // 出力エリアの高さを画面に合わせる
+            function resizeOutput() {
+                const output = document.getElementById("output-wrap");
+                const rect = output.getBoundingClientRect();
 
-            function disp() {
-                output.value = command.value;
+                let height = window.innerHeight - rect.top - 30;
+
+                if (height < 300) height = 300;
+
+                output.style.height = height + "px";
             }
-            command.addEventListener("input", disp);
+
+            window.addEventListener("load", resizeOutput);
+            window.addEventListener("resize", resizeOutput);
+
+            // 文字拡大表示
+            const command = document.getElementById("command");
+            const size    = document.getElementById("size");
+            const upper   = document.getElementById("upper");
+            const font    = document.getElementById("font");
+
+            function update() {
+                const src = command.value;
+                let html = "";
+
+                for (let i = 0; i < src.length; i++) {
+                    const ch = src[i];
+                    const isUpper = ch >= "A" && ch <= "Z";
+
+                    let outChar = ch;
+
+                    // 大文字ONなら強制大文字
+                    if (upper.checked) {
+                        outChar = ch.toUpperCase();
+                    }
+
+                    // 半角スペースを可視化
+                    if (outChar === " ") {
+                        outChar = "␣";
+                    }
+
+                    // 元から大文字だった文字を強調
+                    if (upper.checked && isUpper) {
+                        html += `<span class="upper-origin">${escapeHtml(outChar)}</span>`;
+                    } else {
+                        html += escapeHtml(outChar);
+                    }
+                }
+
+                output.innerHTML = html;
+                output.style.fontSize = size.value + "px";
+                output.style.fontFamily = font.value;
+            }
+
+            // HTMLエスケープ
+            function escapeHtml(str) {
+                return str
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+            }
+
+
+            command.addEventListener("input", update);
+            size.addEventListener("input", update);
+            upper.addEventListener("change", update);
+            font.addEventListener("change", update);
+
+            update();
+            
+
+            function fullscreen() {
+                
+            }
         </script>
     </body>
 </html>

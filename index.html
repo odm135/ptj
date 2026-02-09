@@ -2,10 +2,11 @@
 <html lang="ja">
 
     <head>
-        <meta charset="utf-8"/>
+        <meta charset="utf-8">
         <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>ツール一覧</title>
+        <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
         <link rel="stylesheet" href="css/reset.css">
@@ -41,12 +42,12 @@
                 margin-bottom: 10px;
             }
 
-            a {
+            .page {
                 position: relative;
                 padding-bottom: 3px;
             }
 
-            a::before {
+            .page::before {
                 content: "";
                 position: absolute;
                 left: 0;
@@ -56,40 +57,40 @@
                 background-color: #181818;
                 transition: width 0.4s ease;
             }
-            body.dark a::before {
+            body.dark .page::before {
                 background-color: #C2C2C2;
             }
 
-            a:hover::before {
+            .page:hover::before {
                 width: 100%;
             }
         </style>
     </head>
 
-    <body>
+    <body class="bg-base">
         <header>
             <h1>ツール一覧</h1>
             <div class="icons">
-                <i onClick="darkmode()" title="ダークモード切替" class="fa-solid fa-circle-half-stroke"></i>
-                <a href="index.html"><i class="fa-solid fa-house"></i></a>
+                <button onClick="darkmode()" class="icon" title="ダークモード切替"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
             </div>
         </header>
 
         <div class="ganre">
             <h2>便利系</h2>
             <ul>
-                <li><a href="larger.html">コマンド拡大表示(wip)</a> / 入力したコマンドを見やすく大きく表示する</li>
-                <li><a href="">仮表示</a></li>
-                <li><a href="">仮表示</a></li>
+                <li><a href="larger.html" class="page">コマンド拡大表示(wip)</a> / 入力したコマンドを見やすく大きく表示する</li>
+                <li><a href="" class="page">仮表示</a></li>
+                <li><a href="" class="page">仮表示</a></li>
             </ul>
         </div>
 
         <div class="ganre">
             <h2>Minecraftコマンド系</h2>
             <ul>
-                <li><a href="circle.html">円形設置コマンドジェネレーター</a> / ブロックを円状に設置するコマンドジェネレーター</li>
-                <li><a href="">仮表示</a></li>
-                <li><a href="">仮表示</a></li>
+                <li><a href="circle.html" class="page">円形設置コマンドジェネレーター</a> / ブロックを円状に設置するコマンドジェネレーター</li>
+                <li><a href="" class="page">仮表示</a></li>
+                <li><a href="" class="page">仮表示</a></li>
             </ul>
         </div>
         

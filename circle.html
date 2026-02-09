@@ -2,10 +2,11 @@
 <html lang="ja">
 
     <head>
-        <meta charset="utf-8"/>
+        <meta charset="utf-8">
         <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>円形設置コマンドジェネレーター</title>
+        <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
         <link rel="stylesheet" href="css/reset.css">
@@ -43,6 +44,7 @@
                 transform: scale(2.1);
                 margin-left: 6px;
                 margin-right: 7px;
+                cursor: pointer;
             }
 
             .form button {
@@ -116,8 +118,6 @@
             #output {
                 font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
                 width: 100%;
-                min-height: 300px;
-                height: 300px;
                 padding: 14px;
                 border: 2px solid #000;
                 border-radius: 6px;
@@ -135,12 +135,12 @@
         </style>
     </head>
 
-    <body>
+    <body class="bg-base">
         <header>
             <h1>円形設置コマンドジェネレーター</h1>
             <div class="icons">
-                <i onClick="darkmode()" title="ダークモード切替" class="fa-solid fa-circle-half-stroke"></i>
-                <a href="index.html"><i class="fa-solid fa-house"></i></a>
+                <button onClick="darkmode()" class="icon" title="ダークモード切替"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
             </div>
         </header>
 
@@ -206,7 +206,7 @@
                 const output = document.getElementById("output");
                 const rect = output.getBoundingClientRect();
 
-                let height = window.innerHeight - rect.top - 50;
+                let height = window.innerHeight - rect.top - 30;
 
                 if (height < 300) {
                     height = 300;
@@ -216,6 +216,7 @@
             }
 
             window.addEventListener("load", resizeOutput);
+            window.addEventListener("resize", resizeOutput);
 
 
             // コマンド生成
