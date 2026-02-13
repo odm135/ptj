@@ -45,10 +45,17 @@
             #command {
                 flex: 1;
                 min-width: 0;
-                border-radius: 6px;
-                padding: 12px 20px;
                 resize: none;
+                padding: 12px 20px;
+                line-height: normal;
+
+                font-family: inherit;
+                font-size: inherit;
+                border-radius: 6px;
+                box-sizing: border-box;
             }
+
+
 
             .font-wrap {
                 position: relative;
@@ -80,10 +87,16 @@
             #font {
                 width: 100%;
                 height: 100%;
-                border-radius: 6px;
-                padding: 12px 20px;
+                padding: 8px; /* selectのpadding上書き */
                 cursor: pointer;
+
+                /* 共通化前のスタイル復元 */
+                font-family: inherit;
+                font-size: inherit;
+                border-radius: 6px;
+                box-sizing: border-box;
             }
+
             
             .vs {
                 font-family: Consolas, 'Cascadia Mono', monospace;
@@ -141,8 +154,12 @@
                 position: absolute;
                 top: 12px;
                 right: 12px;
-
                 font-size: 24px;
+                padding: 4px;
+                /* button reset explicit since global button removed */
+                border: none;
+                background: transparent;
+                cursor: pointer;
             }
             
             .upper-origin {
@@ -157,16 +174,17 @@
         <header>
             <h1>コマンド拡大表示</h1>
             <div class="icons">
+                <!-- .icon クラスでスタイルされているので .btn 不要かもだが、resetのために念のため確認 -->
                 <button onClick="darkmode()" class="icon" title="ダークモード切替"><i class="fa-solid fa-circle-half-stroke"></i></button>
                 <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
             </div>
         </header>
 
         <div class="form">
-            <textarea class="bg-surface" id="command" placeholder="拡大表示するコマンドを入力" spellcheck="false"></textarea>
+            <textarea id="command" class="bg-surface" placeholder="拡大表示するコマンドを入力" spellcheck="false"></textarea>
 
             <div class="font-wrap">
-                <select class="bg-surface" id="font" title="フォント選択">
+                <select id="font" class="bg-surface" title="フォント選択">
                     <option value="'Noto Sans JP', sans-serif">デフォルト</option>
                     <option value="Consolas, 'Cascadia Mono', 'Courier New', monospace" class="vs">VS Code風</option>
                     <option value="'MinecraftChat','JFDotK14','Noto Sans JP',sans-serif" class="mc">Minecraft風</option>
@@ -186,7 +204,7 @@
 
         <div id="output-wrap" class="bg-surface">
             <div id="output" data-placeholder="ここにコマンドが表示されます"></div>
-            <button onClick="fullscreen()"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+            <button onClick="fullscreen()" title="フルスクリーン表示（未実装）"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
         </div>
         
         <script src="js/script.js"></script>
@@ -194,18 +212,20 @@
             
             // 出力エリアの高さを画面に合わせる
             function resizeOutput() {
-                const output = document.getElementById("output-wrap");
-                const rect = output.getBoundingClientRect();
+                const outputWrap = document.getElementById("output-wrap");
+                const rect = outputWrap.getBoundingClientRect();
 
                 let height = window.innerHeight - rect.top - 30;
 
-                if (height < 300) height = 300;
-
-                output.style.height = height + "px";
+                if (height < 300) {
+                    height = 300;
+                }
+                outputWrap.style.height = height + "px";
             }
 
             window.addEventListener("load", resizeOutput);
             window.addEventListener("resize", resizeOutput);
+            resizeOutput();
 
             // 文字拡大表示
             const command = document.getElementById("command");

@@ -1,284 +1,266 @@
 <!doctype html>
 <html lang="ja">
 
-    <head>
-        <meta charset="utf-8">
-        <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>円形設置コマンドジェネレーター</title>
-        <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>円形設置コマンドジェネレーター</title>
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-        <link rel="stylesheet" href="css/reset.css">
-        <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
 
-        <style>
+    <style>
+        .form {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
 
-            .form {
-                display: flex;
-                gap: 24px;
-                align-items: center;
-                margin-bottom: 16px;
-                flex-wrap: wrap;
-            }
+        .form label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-            .form label {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
+        .form #radius {
+            width: 80px;
+            height: 28px;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
 
-            .form #radius {
-                width: 80px;
-                height: 28px;
-                padding: 4px 6px;
-                border: 1.5px solid #000;
-                border-radius: 4px;
-            }
-            body.dark .form #radius {
-                border-color: #FFFFFF;
-                color: #C2C2C2;
-            }
+        .form #fill {
+            transform: scale(2.1);
+            margin-left: 6px;
+            margin-right: 7px;
+            cursor: pointer;
+        }
 
-            .form #fill {
-                transform: scale(2.1);
-                margin-left: 6px;
-                margin-right: 7px;
-                cursor: pointer;
-            }
+        .form button {
+            margin-left: 20px;
+            padding: 5px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-            .form button {
-                margin-left: 20px;
-                padding: 5px 14px;
-                border: 1.5px solid #000;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            body.dark .form button {
-                border-color: #FFFFFF;
-                color: #F8F8F8;
-            }
-            .form button:hover {
-                background-color: #dddddd;
-            }
-            body.dark .form button:hover {
-                background-color: #414141;
-            }
+        .form button:hover {
+            opacity: 0.8;
+        }
 
-            .wrapper {
-                position: relative;
-                margin-top: 16px;
-            }
+        .wrapper {
+            position: relative;
+            margin-top: 16px;
+        }
 
-            .action {
-                position: absolute;
-                top: 8px;
-                right: 14px;
-                display: flex;
-            }
+        .action {
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            display: flex;
+        }
 
-            .action button {
-                width: 45px;
-                height: 45px;
-                font-size: 30px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #1C1B16;
-            }
-            .action button:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-            body.dark .action button {
-                color: #F8F8F8;
-            }
+        .action button {
+            width: 45px;
+            height: 45px;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+        }
 
-            #copy-msg {
-                position: absolute;
-                top: 55px;
-                right: 24px;
-                font-size: 14px;
-                padding: 4px 6px;
-                border-radius: 4px;
-                border: 1.5px solid #1C1B16;
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.2s;
-            }
-            body.dark #copy-msg {
-                border-color: #FFFFFF;
-                color: #F8F8F8;
-            }
-            #copy-msg.show {
-                opacity: 1;
-            }
+        .action button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-            #output {
-                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-                width: 100%;
-                padding: 14px;
-                border: 2px solid #000;
-                border-radius: 6px;
-                box-sizing: border-box;
-                resize: none;
-                background-color: #FFFFFF;
-                line-height: 1.4;
-            }
-            body.dark #output {
-                background-color: #1F1F1F;
-                border-color: #F8F8F8;
-                color: #F8F8F8;
-            }
+        #copy-msg {
+            position: absolute;
+            top: 55px;
+            right: 24px;
+            font-size: 14px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
 
-        </style>
-    </head>
+        #copy-msg.show {
+            opacity: 1;
+        }
 
-    <body class="bg-base">
-        <header>
-            <h1>円形設置コマンドジェネレーター</h1>
-            <div class="icons">
-                <button onClick="darkmode()" class="icon" title="ダークモード切替"><i class="fa-solid fa-circle-half-stroke"></i></button>
-                <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
-            </div>
-        </header>
+        #output {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            width: 100%;
+            padding: 14px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            resize: none;
+            line-height: 1.4;
+        }
+    </style>
+</head>
 
-        <div class="form">
-            <label>半径:<input id="radius" type="number" min="1" max="500" value="10"></label>
-            <label>塗りつぶし:<input id="fill" type="checkbox"></label>
-            <button id="gene" onClick="geneCommands()">コマンド生成</button>
+<body class="bg-base">
+    <header>
+        <h1>円形設置コマンドジェネレーター</h1>
+        <div class="icons">
+            <button onClick="darkmode()" class="icon" title="ダークモード切替"><i
+                    class="fa-solid fa-circle-half-stroke"></i></button>
+            <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
         </div>
+    </header>
 
-        <div class="wrapper">
-            <div class="action">
-                <button id="copy" onClick="copy()" title="コピー" disabled><i class="fa-regular fa-clone"></i></button>
-                <button id="download" onClick="download()" title="ダウンロード" disabled><i class="fa-solid fa-download"></i></button>
-            </div>
-            <div id="copy-msg">コピーしました</div>
+    <div class="form">
+        <label>半径:<input id="radius" class="bg-surface" type="number" min="1" max="500" value="10"></label>
+        <label>塗りつぶし:<input id="fill" type="checkbox"></label>
+        <button id="gene" class="bg-surface" onClick="geneCommands()">コマンド生成</button>
+    </div>
 
-            <textarea readonly id="output" placeholder="ここにコマンドが表示されます" spellcheck="false"></textarea>
+    <div class="wrapper">
+        <div class="action">
+            <button id="copy" onClick="copy()" title="コピー" disabled><i class="fa-regular fa-clone"></i></button>
+            <button id="download" onClick="download()" title="ダウンロード" disabled><i
+                    class="fa-solid fa-download"></i></button>
         </div>
-    
-        <script src="js/script.js"></script>
-        <script>
-            // コピー処理
-            var copyTimerId = null;
+        <div id="copy-msg" class="bg-surface">コピーしました</div>
 
-            function copy() {
-                const text = document.getElementById("output").value;
-                if (!text) return;
+        <textarea readonly id="output" class="bg-surface" placeholder="ここにコマンドが表示されます" spellcheck="false"></textarea>
+    </div>
 
-                navigator.clipboard.writeText(text);
+    <script src="js/script.js"></script>
+    <script>
+        // コピー処理
+        var copyTimerId = null;
 
-                document.getElementById("copy-msg").classList.add("show");
-                if (copyTimerId !== null) clearTimeout(copyTimerId);
-                copyTimerId = setTimeout(hideCopyMessage, 1500);
+        function copy() {
+            const text = document.getElementById("output").value;
+            if (!text) return;
+
+            navigator.clipboard.writeText(text);
+
+            document.getElementById("copy-msg").classList.add("show");
+            if (copyTimerId !== null) clearTimeout(copyTimerId);
+            copyTimerId = setTimeout(hideCopyMessage, 1500);
+        }
+
+        function hideCopyMessage() {
+            document.getElementById("copy-msg").classList.remove("show");
+        }
+
+
+        // ダウンロード処理
+        function download() {
+            const text = document.getElementById("output").value;
+            if (!text) return;
+
+            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "circle.mcfunction";
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        }
+
+
+        // outputのtextareaの高さ設定
+        function resizeOutput() {
+            const output = document.getElementById("output");
+            const rect = output.getBoundingClientRect();
+
+            let height = window.innerHeight - rect.top - 30;
+
+            if (height < 300) {
+                height = 300;
+                output.style.resize = "vertical";
             }
+            output.style.height = height + "px";
+        }
 
-            function hideCopyMessage() {
-                document.getElementById("copy-msg").classList.remove("show");
-            }
-
-
-            // ダウンロード処理
-            function download() {
-                const text = document.getElementById("output").value;
-                if (!text) return;
-
-                const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "circle.mcfunction";
-
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                URL.revokeObjectURL(url);
-            }
+        window.addEventListener("load", resizeOutput);
+        window.addEventListener("resize", resizeOutput);
 
 
-            // outputのtextareaの高さ設定
-            function resizeOutput() {
-                const output = document.getElementById("output");
-                const rect = output.getBoundingClientRect();
+        // コマンド生成
+        function geneCommands() {
+            const r = Number(document.getElementById("radius").value) - 1;
+            const fill = document.getElementById("fill").checked;
+            let lines = [];
 
-                let height = window.innerHeight - rect.top - 30;
-
-                if (height < 300) {
-                    height = 300;
-                    output.style.resize = "vertical";
-                }
-                output.style.height = height + "px";
-            }
-
-            window.addEventListener("load", resizeOutput);
-            window.addEventListener("resize", resizeOutput);
-
-
-            // コマンド生成
-            function geneCommands() {
-                const r = Number(document.getElementById("radius").value) - 1;
-                const fill = document.getElementById("fill").checked;
-                let lines = [];
-
-                if (!Number.isInteger(r) || r < 0 || 500 < r) {
-                    lines.push("半径は1以上500以下の整数で指定してください");
-                    document.getElementById("output").value = lines.join("\n");
-
-                    document.getElementById("copy").disabled = true;
-                    document.getElementById("download").disabled = true;
-                    return;
-                }
-
-                lines.push("# 半径" + (r + 1) + "の円形にブロックを配置するコマンド");
-                if (fill) lines.push("# 塗りつぶしあり");
-                else lines.push("# 塗りつぶしなし");
-                lines.push("# 実行例: /function <namespace>:circle {block:stone}\n");
-
-                const r2 = r * r;
-
-                // 塗りつぶしありの場合
-                if (fill) {
-                    for (let z = -r; z <= r; z++) {
-                        const rest = r2 - z * z;
-                        if (rest < 0) continue;
-
-                        const maxX = Math.floor(Math.sqrt(rest));
-
-                        lines.push(`$execute at @s align xyz run fill ~${-maxX} ~ ~${z} ~${maxX} ~ ~${z} $(block)`);
-                    }
-                }
-
-                // 塗りつぶしなしの場合
-                else {
-                    const limit = r + 1;
-
-                    for (let x = -limit; x <= limit; x++) {
-                        for (let z = -limit; z <= limit; z++) {
-                            const d2 = x*x + z*z;
-                            if (d2 <= r2) {
-                                if ((x+1)*(x+1) + z*z > r2 ||
-                                    (x-1)*(x-1) + z*z > r2 ||
-                                    x*x + (z+1)*(z+1) > r2 ||
-                                    x*x + (z-1)*(z-1) > r2) {
-                                    lines.push(`$execute at @s align xyz run setblock ~${x} ~ ~${z} $(block)`);
-                                }
-                            }
-                        }
-                    }
-                }
-
+            if (!Number.isInteger(r) || r < 0 || 500 < r) {
+                lines.push("半径は1以上500以下の整数で指定してください");
                 document.getElementById("output").value = lines.join("\n");
 
-                document.getElementById("copy").disabled = false;
-                document.getElementById("download").disabled = false;
-
-                hideCopyMessage();
+                document.getElementById("copy").disabled = true;
+                document.getElementById("download").disabled = true;
+                return;
             }
-        </script>
-    </body>
+
+            lines.push("# 半径" + (r + 1) + "の円形にブロックを配置するコマンド");
+            if (fill) lines.push("# 塗りつぶしあり");
+            else lines.push("# 塗りつぶしなし");
+            lines.push("# 実行例: /function <namespace>:circle {block:stone}\n");
+
+            const r2 = r * r;
+
+            // 塗りつぶしありの場合
+            if (fill) {
+                for (let z = -r; z <= r; z++) {
+                    const rest = r2 - z * z;
+                    if (rest < 0) continue;
+
+                    const maxX = Math.floor(Math.sqrt(rest));
+
+                    lines.push(`$execute at @s align xyz run fill ~${-maxX} ~ ~${z} ~${maxX} ~ ~${z} $(block)`);
+                }
+            }
+            // 塗りつぶしなしの場合
+            else {
+                for (let z = -r; z <= r; z++) {
+                    const rest = r * r - z * z;
+                    if (rest < 0) continue;
+
+                    const x = Math.round(Math.sqrt(rest));
+
+                    lines.push(`$setblock ~${x} ~ ~${z} $(block)`);
+                    if (x !== 0) lines.push(`$setblock ~${-x} ~ ~${z} $(block)`);
+                }
+                // z軸方向の隙間埋め
+                for (let x = -r; x <= r; x++) {
+                    const rest = r * r - x * x;
+                    if (rest < 0) continue;
+
+                    const z = Math.round(Math.sqrt(rest));
+
+                    if (lines.indexOf(`$setblock ~${x} ~ ~${z} $(block)`) === -1) lines.push(`$setblock ~${x} ~ ~${z} $(block)`);
+                    if (z !== 0) {
+                        if (lines.indexOf(`$setblock ~${x} ~ ~${-z} $(block)`) === -1) lines.push(`$setblock ~${x} ~ ~${-z} $(block)`);
+                    }
+                }
+            }
+
+            document.getElementById("output").value = lines.join("\n");
+
+            document.getElementById("copy").disabled = false;
+            document.getElementById("download").disabled = false;
+            
+            document.getElementById("copy-msg").classList.remove("show");
+        }
+    </script>
+</body>
+
 </html>

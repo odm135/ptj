@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minecraft BGMコマンドジェネレーター</title>
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* 全画面レイアウト */
+        body {
+            /* 画面全体の固定を解除 */
+            display: flex;
+            flex-direction: column;
+            max-width: none;
+        }
+
+        header {
+            flex: 0 0 auto;
+            margin-bottom: 0;
+            padding: 10px 20px;
+            background: transparent;
+        }
+
+        /* メインコンテナ：左右分割 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            width: 100%;
+        }
+
+        /* --- 左パネル：作曲エリア (3/4) --- */
+        .left-panel {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            background-color: transparent;
+            padding: 0 0 20px 20px;
+            position: relative;
+        }
+
+        .topbar {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding-top: 10px;
+            padding-right: 10px;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        /* select復帰、custom inputスタイル */
+        /* 試聴・コマンド生成ボタン（右寄せ） */
+        .play-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 試聴・コマンド生成ボタン（右寄せ） */
+        .play-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 譜面エリア */
+        .score-wrap {
+            flex: 0 1 auto;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            overflow: auto;
+            background-color: rgba(255, 255, 255, 0.5);
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        body.dark .score-wrap {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .staff {
+            position: relative;
+            min-width: 100%;
+            background: repeating-linear-gradient(to bottom,
+                    transparent 0px,
+                    transparent 23px,
+                    rgba(0, 0, 0, 0.2) 23px,
+                    rgba(0, 0, 0, 0.2) 24px);
+        }
+
+        body.dark .staff {
+            background: repeating-linear-gradient(to bottom,
+                    transparent 0px,
+                    transparent 23px,
+                    rgba(255, 255, 255, 0.2) 23px,
+                    rgba(255, 255, 255, 0.2) 24px);
+        }
+
+        .vlines {
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(to right,
+                    rgba(0, 0, 0, 0.05) 0px,
+                    rgba(0, 0, 0, 0.05) 1px,
+                    transparent 1px,
+                    transparent 40px);
+            pointer-events: none;
+        }
+
+        body.dark .vlines {
+            background: repeating-linear-gradient(to right,
+                    rgba(255, 255, 255, 0.08) 0px,
+                    rgba(255, 255, 255, 0.08) 1px,
+                    transparent 1px,
+                    transparent 40px);
+        }
+
+        /* 作曲画面下のUIエリア */
+        .bottom-ui {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 10px 20px 0;
+            margin-right: 10px;
+        }
+
+        .bottom-ui ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .resize-controls .btn {
+            width: 80px;
+            height: 40px;
+            font-size: 28px;
+            padding: 0;
+            line-height: 1;
+            padding-bottom: 4px; /* 視覚的調整 */
+        }
+
+        .note {
+            position: absolute;
+            width: 32px;
+            height: 20px;
+            border: 1.5px solid #000;
+            border-radius: 999px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            user-select: none;
+            cursor: grab;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            font-family: ui-monospace, monospace;
+            white-space: nowrap;
+            color: #000; /* 文字色固定 */
+        }
+
+        .note:active {
+            cursor: grabbing;
+        }
+
+        body.dark .note {
+            background: #181818;
+            border-color: #F8F8F8;
+            color: #fff;
+        }
+
+        #playBar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: red;
+            z-index: 5;
+            display: none;
+            pointer-events: none;
+        }
+
+
+        /* --- 右パネル：出力・操作エリア (1/4) --- */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 20px 30px;
+            background-color: rgba(255, 255, 255, 0.3);
+            min-width: 250px;
+        }
+
+        body.dark .right-panel {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* 独立したスタイル定義 (style.css への依存を最小限に) */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid transparent; /* ボーダー用の枠を確保 */
+            font-family: inherit;
+            color: inherit;
+        }
+        .btn.bg-surface {
+            border: 1px solid #181818;
+        }
+        body.dark .btn.bg-surface {
+            border-color: #F8F8F8;
+        }
+        .btn:hover { opacity: 0.8; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            font-family: inherit;
+            font-size: inherit;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #181818;
+            box-sizing: border-box;
+        }
+        body.dark input, body.dark select, body.dark textarea {
+            border-color: #F8F8F8;
+        }
+
+        .copy-msg {
+            position: absolute;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            background: #333;
+            color: #fff;
+            white-space: nowrap;
+            z-index: 100;
+        }
+        body.dark .copy-msg {
+            background: #ddd;
+            color: #000;
+        }
+        .copy-msg.show { opacity: 1; }
+
+        .select-container {
+            position: relative;
+            width: 240px;
+            height: 40px;
+        }
+        #soundType {
+            width: 100%;
+            height: 100%;
+            padding-right: 34px;
+        }
+        #customSoundType {
+            width: 240px;
+            height: 40px;
+            margin-left: 10px;
+            display: none;
+        }
+        .input-wrap {
+            display: flex;
+            align-items: center;
+        }
+        .select-container::after {
+            position: absolute;
+            content: '';
+            width: 10px;
+            height: 10px;
+            top: 50%;
+            right: 14px;
+            margin-top: -3px;
+            border-bottom: 2px solid #181818;
+            border-right: 2px solid #181818;
+            transform: rotate(45deg) translateY(-50%);
+            transform-origin: 50% 0;
+            pointer-events: none;
+        }
+        body.dark .select-container::after {
+            border-bottom-color: #F8F8F8;
+            border-right-color: #F8F8F8;
+        }
+
+        #output {
+            width: 100%;
+            height: 100%;
+            resize: none;
+            line-height: 1.4;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+    </style>
+</head>
+
+<body class="bg-base">
+    <header>
+        <h1>Minecraft BGMコマンドジェネレーター</h1>
+        <div class="icons">
+            <button onClick="darkmode()" class="icon" title="ダークモード切替"><i
+                    class="fa-solid fa-circle-half-stroke"></i></button>
+            <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- 左パネル: 作曲 -->
+        <div class="left-panel">
+            <div class="topbar">
+                <div class="field">
+                    <div>音の種類:</div>
+                    <div class="input-wrap">
+                        <div class="select-container">
+                            <select id="soundType" class="bg-surface">
+                                <option value="minecraft:block.note_block.bell">ベル</option>
+                                <option value="minecraft:block.note_block.harp">ハープ</option>
+                                <option value="minecraft:block.note_block.pling">プリング</option>
+                                <option value="minecraft:block.note_block.bit">ビット</option>
+                                <option value="minecraft:block.note_block.flute">フルート</option>
+                                <option value="minecraft:block.note_block.chime">チャイム</option>
+                                <option value="minecraft:block.note_block.guitar">ギター</option>
+                                <option value="minecraft:block.note_block.xylophone">鉄琴</option>
+                                <option value="minecraft:block.note_block.iron_xylophone">鉄琴(Iron)</option>
+                                <option value="minecraft:block.note_block.cow_bell">カウベル</option>
+                                <option value="minecraft:block.note_block.didgeridoo">ディジュリドゥ</option>
+                                <option value="minecraft:block.note_block.banjo">バンジョー</option>
+                                <option value="custom">その他</option>
+                            </select>
+                        </div>
+                        <input type="text" id="customSoundType" class="bg-surface" placeholder="サウンドID (例: minecraft:custom)" value="">
+                    </div>
+                </div>
+
+                <div class="field speed">
+                    <div>曲の速さ:</div>
+                    <input id="speedRange" type="range" min="1" max="40" value="21" step="1" title="左：遅い / 右：速い" />
+                    <div class="val"><span id="speedVal">20</span> tick</div>
+                </div>
+
+                <div class="play-controls">
+                    <button class="btn bg-surface" id="btnPlay"><i class="fa-solid fa-play"></i> 試聴</button>
+                    <button class="btn bg-surface" id="btnStop" style="display:none;"><i class="fa-solid fa-stop"></i>停止</button>
+                    <button class="btn bg-surface" id="btnGenerate"><i class="fa-solid fa-code"></i>コマンド生成</button>
+                </div>
+            </div>
+
+            <div class="score-wrap bg-surface" id="scoreWrap">
+                <div class="staff" id="staff">
+                    <div class="vlines"></div>
+                    <div id="playBar"></div>
+                </div>
+            </div>
+
+            <!-- 作曲画面下UI -->
+            <div class="bottom-ui">
+                <ul>
+                    <li>左クリック：音符追加</li>
+                    <li>右クリック：音符削除</li>
+                    <li>ドラッグ：音符移動</li>
+                </ul>
+                <div class="resize-controls">
+                    <button class="btn bg-surface" id="btnShrink" title="1マス減らす">-</button>
+                    <button class="btn bg-surface" id="btnExtend" title="1マス増やす">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右パネル: コマンド出力・操作 -->
+        <div class="right-panel">
+            <div class="row-btns" style="display: flex; gap: 10px; margin-bottom: 12px; justify-content: flex-end; position: relative;">
+                <div id="copy-msg" class="copy-msg">コピーしました</div>
+                <button class="btn bg-surface" id="btnCopy" disabled><i class="fa-regular fa-clone"></i>コピー</button>
+                <button class="btn bg-surface" id="btnDownload" disabled><i class="fa-solid fa-download"></i>ダウンロード</button>
+            </div>
+
+            <div class="out-wrap">
+                <textarea readonly id="output" class="bg-surface" placeholder="ここにコマンドが表示されます" spellcheck="false"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+
+        // ===== 音名定義（F#3 ～ F#5） =====
+        const NOTE_LABELS = [
+            "ファ♯", "ファ", "ミ", "レ♯", "レ", "ド♯", "ド", "シ", "ラ♯", "ラ", "ソ♯", "ソ", // Oct5->4
+            "ファ♯", "ファ", "ミ", "レ♯", "レ", "ド♯", "ド", "シ", "ラ♯", "ラ", "ソ♯", "ソ", // Oct4->3
+            "ファ♯" // Bottom
+        ];
+
+        const PITCHES = NOTE_LABELS.map((_, i) => Math.pow(2, (12 - i) / 12));
+
+        // ===== 定数 =====
+        const CELL_W = 40;
+        const ROW_H = 24;
+        const NOTE_H = 20;
+        const ROWS = NOTE_LABELS.length;
+
+        // Elements
+        const staff = document.getElementById("staff");
+        const speedRange = document.getElementById("speedRange");
+        const speedVal = document.getElementById("speedVal");
+        const soundType = document.getElementById("soundType");
+        const customSoundType = document.getElementById("customSoundType");
+        const output = document.getElementById("output");
+        const copyBtn = document.getElementById("btnCopy");
+        const dlBtn = document.getElementById("btnDownload");
+        const copyMsg = document.getElementById("copy-msg");
+        const btnGenerate = document.getElementById("btnGenerate");
+        const btnExtend = document.getElementById("btnExtend");
+        const btnShrink = document.getElementById("btnShrink");
+        const scoreWrap = document.getElementById("scoreWrap");
+
+        // Initialization
+        staff.style.height = (ROWS * ROW_H) + "px";
+
+        // 初期幅設定
+        function initWidth() {
+            const wrapW = scoreWrap.clientWidth;
+            // 初期は少し余裕を持たせる
+            staff.style.width = Math.max(800, wrapW) + "px";
+        }
+        window.addEventListener('load', initWidth);
+
+        let notes = [];
+        const uid = () => Math.random().toString(36).slice(2, 9);
+
+        // 座標計算
+        function yFromRow(row) {
+            return row * ROW_H + (ROW_H - NOTE_H) / 2;
+        }
+
+        function xFromCol(col) {
+            return col * CELL_W + (CELL_W - 32) / 2;
+        }
+
+        function clamp(n, min, max) {
+            return Math.max(min, Math.min(max, n));
+        }
+
+        // tickGap計算
+        function getTickGap() {
+            return 41 - Number(speedRange.value);
+        }
+
+        // 速さ表示更新
+        function updateSpeedDisplay() {
+            speedVal.textContent = String(getTickGap());
+        }
+
+        // レンダリング
+        function render() {
+            [...staff.querySelectorAll(".note")].forEach(el => el.remove());
+
+            for (const n of notes) {
+                const el = document.createElement("div");
+                el.className = "note";
+                el.style.left = xFromCol(n.col) + "px";
+                el.style.top = yFromRow(n.row) + "px";
+                el.textContent = NOTE_LABELS[n.row];
+
+                el.addEventListener("contextmenu", (e) => {
+                    e.preventDefault();
+                    notes = notes.filter(x => x.id !== n.id);
+                    render();
+                });
+
+                el.addEventListener("pointerdown", (e) => dragStartNote(e, n.id));
+                staff.appendChild(el);
+            }
+        }
+
+        // 音符追加
+        function addNoteAt(clientX, clientY) {
+            const rect = staff.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            const col = Math.max(0, Math.floor(x / CELL_W));
+            const row = clamp(Math.floor(y / ROW_H), 0, ROWS - 1);
+
+            const exists = notes.find(n => n.col === col && n.row === row);
+            if (exists) return;
+
+            notes.push({ id: uid(), col, row });
+            render();
+        }
+
+        staff.addEventListener("click", (e) => {
+            if (e.target.closest(".note")) return;
+            // クリック位置がstaff内の有効範囲か（要素追加などでずれる可能性考慮）
+            addNoteAt(e.clientX, e.clientY);
+        });
+
+        // 音符ドラッグ
+        function dragStartNote(e, id) {
+            const n = notes.find(x => x.id === id);
+            if (!n) return;
+
+            e.target.setPointerCapture(e.pointerId);
+            e.stopPropagation();
+
+            const move = (ev) => {
+                const rect = staff.getBoundingClientRect();
+                const x = ev.clientX - rect.left;
+                const y = ev.clientY - rect.top;
+
+                n.col = Math.max(0, Math.floor(x / CELL_W));
+                n.row = clamp(Math.floor(y / ROW_H), 0, ROWS - 1);
+                render();
+            };
+
+            const up = () => {
+                window.removeEventListener("pointermove", move);
+                window.removeEventListener("pointerup", up);
+            };
+
+            window.addEventListener("pointermove", move);
+            window.addEventListener("pointerup", up);
+        }
+
+        // 譜面幅リサイズ (1マス = 40px単位)
+        const EXTEND_PX = 40;
+
+        btnExtend.addEventListener("click", () => {
+            const currentW = parseFloat(getComputedStyle(staff).width);
+            staff.style.width = (currentW + EXTEND_PX) + "px";
+        });
+
+        btnShrink.addEventListener("click", () => {
+            const currentW = parseFloat(getComputedStyle(staff).width);
+            const minW = Math.max(400, scoreWrap.clientWidth);
+            const newW = Math.max(minW, currentW - EXTEND_PX);
+
+            if (newW < currentW) {
+                staff.style.width = newW + "px";
+                // 範囲外の音符を削除
+                const maxCol = Math.floor(newW / CELL_W);
+                const prevCount = notes.length;
+                notes = notes.filter(n => n.col < maxCol);
+                if (notes.length !== prevCount) {
+                    render();
+                }
+            }
+        });
+
+        // コマンド生成
+        function generateCommand() {
+            const gap = getTickGap();
+            updateSpeedDisplay();
+
+            const sorted = notes.slice().sort((a, b) => a.col - b.col || a.row - b.row);
+            const lines = sorted.map(n => {
+                const T = n.col * gap;
+                const P = PITCHES[n.row];
+                const pStr = (Number.isFinite(P) ? P : 1).toFixed(3);
+                
+                let sound = soundType.value;
+                if (sound === "custom") {
+                    sound = customSoundType.value || "minecraft:block.note_block.pling"; // 空ならデフォルト
+                }
+
+                return `execute if score tick sound matches ${T} at @a run playsound ${sound} master @p ~ ~ ~ 1 ${pStr}`;
+            });
+
+            output.value = lines.join("\n");
+
+            // ボタン有効化制御
+            const has = lines.length > 0;
+            copyBtn.disabled = !has;
+            dlBtn.disabled = !has;
+            
+            if (has) copyMsg.classList.remove("show"); // 再生成したらメッセージ消すなど
+        }
+
+        btnGenerate.addEventListener("click", generateCommand);
+
+        // コピー・ダウンロード (ローカル関数)
+        let copyTimerId = null;
+
+        copyBtn.addEventListener("click", () => {
+            const text = output.value;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                copyMsg.classList.add("show");
+                if (copyTimerId !== null) clearTimeout(copyTimerId);
+                copyTimerId = setTimeout(() => {
+                    copyMsg.classList.remove("show");
+                }, 1500);
+            });
+        });
+
+        dlBtn.addEventListener("click", () => {
+            const text = output.value;
+            if (!text) return;
+            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "bgm.mcfunction";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        speedRange.addEventListener("input", updateSpeedDisplay);
+
+        // 試聴機能
+        let audioCtx = null;
+        let isPlaying = false;
+        let playTimer = null;
+        const btnPlay = document.getElementById("btnPlay");
+        const btnStop = document.getElementById("btnStop");
+        const playBar = document.getElementById("playBar");
+
+        async function playScore() {
+            if (notes.length === 0) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+            isPlaying = true;
+            btnPlay.style.display = "none";
+            btnStop.style.display = "inline-flex";
+            playBar.style.display = "block";
+
+            const gapMs = getTickGap() * 50;
+            const sorted = notes.slice().sort((a, b) => a.col - b.col);
+            const maxCol = sorted[sorted.length - 1].col;
+            const totalTimeMs = (maxCol + 1) * gapMs;
+            const startTime = audioCtx.currentTime + 0.1;
+
+            sorted.forEach(n => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const freq = 370 * PITCHES[n.row];
+                osc.type = "triangle";
+                osc.frequency.value = freq;
+                const t = startTime + (n.col * gapMs) / 1000;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(t);
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+                osc.stop(t + 0.4);
+            });
+
+            const animStart = performance.now();
+
+            function updateBar() {
+                if (!isPlaying) return;
+                const now = performance.now();
+                const elapsed = now - animStart;
+                const currentCol = elapsed / gapMs;
+                const x = xFromCol(currentCol) + (32 / 2);
+
+                playBar.style.left = x + "px";
+                if (x > scoreWrap.scrollLeft + scoreWrap.clientWidth - 50) {
+                    scoreWrap.scrollLeft = x - 100;
+                }
+                if (elapsed < totalTimeMs + 500) {
+                    playTimer = requestAnimationFrame(updateBar);
+                } else {
+                    stopScore();
+                }
+            }
+            playTimer = requestAnimationFrame(updateBar);
+        }
+
+        function stopScore() {
+            isPlaying = false;
+            if (audioCtx) {
+                audioCtx.close().then(() => {
+                    audioCtx = null;
+                });
+            }
+            cancelAnimationFrame(playTimer);
+            btnPlay.style.display = "inline-flex";
+            btnStop.style.display = "none";
+            playBar.style.display = "none";
+        }
+
+        btnPlay.addEventListener("click", playScore);
+        btnStop.addEventListener("click", stopScore);
+
+        // 初期表示
+        updateSpeedDisplay();
+        
+        // 自動リサイズ (ローカル)
+        function resizeOutput() {
+            const el = document.getElementById("output");
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            let availableHeight = window.innerHeight - rect.top - 30;
+            if (availableHeight < 100) availableHeight = 100;
+            el.style.height = availableHeight + "px";
+        }
+        window.addEventListener("load", resizeOutput);
+        window.addEventListener("resize", resizeOutput);
+        resizeOutput();
+
+        // 音色選択切り替え
+        soundType.addEventListener("change", () => {
+            if (soundType.value === "custom") {
+                customSoundType.style.display = "block";
+            } else {
+                customSoundType.style.display = "none";
+            }
+        });
+
+        render();
+    </script>
+</body>
+
+</html>
