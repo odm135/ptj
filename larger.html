@@ -161,6 +161,24 @@
                 background: transparent;
                 cursor: pointer;
             }
+
+            #output-wrap:fullscreen {
+                width: 100vw;
+                height: 100vh;
+                max-width: none;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+                outline: none;
+                box-sizing: border-box;
+                margin: 0;
+                padding: 16px 20px;
+            }
+
+            #output-wrap:fullscreen #output {
+                height: 100%;
+                overflow: auto;
+            }
             
             .upper-origin {
                 color: red;
@@ -204,7 +222,7 @@
 
         <div id="output-wrap" class="bg-surface">
             <div id="output" data-placeholder="ここにコマンドが表示されます"></div>
-            <button onClick="fullscreen()" title="フルスクリーン表示（未実装）"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+            <button id="fullscreen-btn" onClick="fullscreen()" title="フルスクリーン表示（未実装）"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
         </div>
         
         <script src="js/script.js"></script>
@@ -213,6 +231,11 @@
             // 出力エリアの高さを画面に合わせる
             function resizeOutput() {
                 const outputWrap = document.getElementById("output-wrap");
+
+                if (document.fullscreenElement === outputWrap) {
+                    return;
+                }
+
                 const rect = outputWrap.getBoundingClientRect();
 
                 let height = window.innerHeight - rect.top - 30;
@@ -232,6 +255,9 @@
             const size    = document.getElementById("size");
             const upper   = document.getElementById("upper");
             const font    = document.getElementById("font");
+            const output  = document.getElementById("output");
+            const outputWrap = document.getElementById("output-wrap");
+            const fullscreenButton = document.getElementById("fullscreen-btn");
 
             function update() {
                 const src = command.value;
@@ -283,8 +309,35 @@
             update();
             
 
-            function fullscreen() {
-                
+            function updateFullscreenButton() {
+                const isFullscreen = document.fullscreenElement === outputWrap;
+                const icon = fullscreenButton.querySelector("i");
+
+                if (isFullscreen) {
+                    icon.className = "fa-solid fa-down-left-and-up-right-to-center";
+                    fullscreenButton.title = "フルスクリーンを終了";
+                } else {
+                    icon.className = "fa-solid fa-up-right-and-down-left-from-center";
+                    fullscreenButton.title = "フルスクリーン";
+                }
+            }
+
+            document.addEventListener("fullscreenchange", () => {
+                updateFullscreenButton();
+                resizeOutput();
+            });
+
+            async function fullscreen() {
+                if (document.fullscreenElement === outputWrap) {
+                    await document.exitFullscreen();
+                    return;
+                }
+
+                if (document.fullscreenElement) {
+                    await document.exitFullscreen();
+                }
+
+                await outputWrap.requestFullscreen();
             }
         </script>
     </body>
