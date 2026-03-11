@@ -7,9 +7,9 @@
 
 ### 便利系
 
-- <a href="https://odm135.github.io/ptj/larger.html">コマンド拡大表示</a> - 入力されたテキストをウィンドウ全体に拡大表示するためのツールです。
+- [コマンド拡大表示](https://odm135.github.io/ptj/larger.html) - 入力されたテキストをウィンドウ全体に拡大表示するためのツールです。
 
 
 ### Minecraftコマンド系
-- <a href="https://odm135.github.io/ptj/circle.html">円形設置コマンドジェネレーター</a> - 指定された半径とブロックIDに基づき、円形にブロックを配置するfunctionコマンドを生成します。
-- <a href="https://odm135.github.io/ptj/sound.html">BGMコマンドジェネレーター</a> - ピアノロール形式のUIで音符を配置し、選択したサウンドを演奏するコマンドを生成します。
+- [円形設置コマンドジェネレーター](https://odm135.github.io/ptj/circle.html) - 指定された半径とブロックIDに基づき、円形にブロックを配置するfunctionコマンドを生成します。
+- [BGMコマンドジェネレーター](https://odm135.github.io/ptj/sound.html) - ピアノロール形式のUIで音符を配置し、選択したサウンドを演奏するコマンドを生成します。

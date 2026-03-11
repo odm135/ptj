@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="個人的に作ったMinecraftのコマンドツール等">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>球体設置コマンドジェネレーター</title>
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .form {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .form label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form #radius {
+            width: 80px;
+            height: 28px;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }
+
+        .form #fill {
+            transform: scale(2.1);
+            margin-left: 6px;
+            margin-right: 7px;
+            cursor: pointer;
+        }
+
+        .form button {
+            margin-left: 20px;
+            padding: 5px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form button:hover {
+            opacity: 0.8;
+        }
+
+        .wrapper {
+            position: relative;
+            margin-top: 16px;
+        }
+
+        .action {
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            display: flex;
+        }
+
+        .action button {
+            width: 45px;
+            height: 45px;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+        }
+
+        .action button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #copy-msg {
+            position: absolute;
+            top: 55px;
+            right: 24px;
+            font-size: 14px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        #copy-msg.show {
+            opacity: 1;
+        }
+
+        #output {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            width: 100%;
+            padding: 14px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            resize: none;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body class="bg-base">
+    <header>
+        <h1>球体設置コマンドジェネレーター</h1>
+        <div class="icons">
+            <button onClick="darkmode()" class="icon" title="ダークモード切替"><i
+                    class="fa-solid fa-circle-half-stroke"></i></button>
+            <a href="index.html" class="icon"><i class="fa-solid fa-house"></i></a>
+        </div>
+    </header>
+
+    <div class="form">
+        <label>半径:<input id="radius" class="bg-surface" type="number" min="1" max="500" value="10"></label>
+        <label>塗りつぶし:<input id="fill" type="checkbox"></label>
+        <button id="gene" class="bg-surface" onClick="geneCommands()">コマンド生成</button>
+    </div>
+
+    <div class="wrapper">
+        <div class="action">
+            <button id="copy" onClick="copy()" title="コピー" disabled><i class="fa-regular fa-clone"></i></button>
+            <button id="download" onClick="download()" title="ダウンロード" disabled><i
+                    class="fa-solid fa-download"></i></button>
+        </div>
+        <div id="copy-msg" class="bg-surface">コピーしました</div>
+
+        <textarea readonly id="output" class="bg-surface" placeholder="ここにコマンドが表示されます" spellcheck="false"></textarea>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        // コピー処理
+        var copyTimerId = null;
+
+        function copy() {
+            const text = document.getElementById("output").value;
+            if (!text) return;
+
+            navigator.clipboard.writeText(text);
+
+            document.getElementById("copy-msg").classList.add("show");
+            if (copyTimerId !== null) clearTimeout(copyTimerId);
+            copyTimerId = setTimeout(hideCopyMessage, 1500);
+        }
+
+        function hideCopyMessage() {
+            document.getElementById("copy-msg").classList.remove("show");
+        }
+
+
+        // ダウンロード処理
+        function download() {
+            const text = document.getElementById("output").value;
+            if (!text) return;
+
+            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "sphere.mcfunction";
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        }
+
+
+        // outputのtextareaの高さ設定
+        function resizeOutput() {
+            const output = document.getElementById("output");
+            const rect = output.getBoundingClientRect();
+
+            let height = window.innerHeight - rect.top - 30;
+
+            if (height < 300) {
+                height = 300;
+                output.style.resize = "vertical";
+            }
+            output.style.height = height + "px";
+        }
+
+        window.addEventListener("load", resizeOutput);
+        window.addEventListener("resize", resizeOutput);
+
+
+        // コマンド生成
+        function geneCommands() {
+            const r = Number(document.getElementById("radius").value) - 1;
+            const fill = document.getElementById("fill").checked;
+            let lines = [];
+
+            if (!Number.isInteger(r) || r < 0 || 500 < r) {
+                lines.push("半径は1以上500以下の整数で指定してください");
+                document.getElementById("output").value = lines.join("\n");
+
+                document.getElementById("copy").disabled = true;
+                document.getElementById("download").disabled = true;
+                return;
+            }
+
+            lines.push("# 半径" + (r + 1) + "の球体にブロックを配置するコマンド");
+            if (fill) lines.push("# 塗りつぶしあり");
+            else lines.push("# 塗りつぶしなし");
+            lines.push("# 実行例: /function <namespace>:sphere {block:stone}\n");
+
+            const r2 = r * r;
+
+            // 塗りつぶしありの場合
+            if (fill) {
+                for (let y = -r; y <= r; y++) {
+                    const r2_y = r2 - y * y;
+                    if (r2_y < 0) continue;
+                    const r_y = Math.sqrt(r2_y);
+
+                    for (let z = -Math.floor(r_y); z <= Math.floor(r_y); z++) {
+                        const r2_z = r2_y - z * z;
+                        if (r2_z < 0) continue;
+                        const maxX = Math.floor(Math.sqrt(r2_z));
+                        lines.push(`$execute at @s align xyz run fill ~${-maxX} ~${y} ~${z} ~${maxX} ~${y} ~${z} $(block)`);
+                    }
+                }
+            }
+            // 塗りつぶしなしの場合
+            else {
+                for (let y = -r; y <= r; y++) {
+                    const r2_y = r2 - y * y;
+                    if (r2_y < 0) continue;
+                    const r_y = Math.sqrt(r2_y);
+
+                    // 各高さ y において、円の境界を描画
+                    // Z軸方向にループし、その時の X の端点を求める
+                    for (let z = -Math.round(r_y); z <= Math.round(r_y); z++) {
+                        const r2_z = r2_y - z * z;
+                        if (r2_z < 0) {
+                            lines.push(`$setblock ~0 ~${y} ~${z} $(block)`);
+                            continue;
+                        }
+                        const x = Math.round(Math.sqrt(r2_z));
+                        lines.push(`$setblock ~${x} ~${y} ~${z} $(block)`);
+                        if (x !== 0) lines.push(`$setblock ~${-x} ~${y} ~${z} $(block)`);
+                    }
+
+                    // 隙間を埋めるための X軸方向ループ
+                    for (let x = -Math.round(r_y); x <= Math.round(r_y); x++) {
+                        const r2_x = r2_y - x * x;
+                        if (r2_x < 0) {
+                            lines.push(`$setblock ~${x} ~${y} ~0 $(block)`);
+                            continue;
+                        }
+                        const z = Math.round(Math.sqrt(r2_x));
+                        lines.push(`$setblock ~${x} ~${y} ~${z} $(block)`);
+                        if (z !== 0) lines.push(`$setblock ~${x} ~${y} ~${-z} $(block)`);
+                    }
+                }
+                // 重複行を削除
+                lines = [...new Set(lines)];
+            }
+
+            document.getElementById("output").value = lines.join("\n");
+
+            document.getElementById("copy").disabled = false;
+            document.getElementById("download").disabled = false;
+
+            document.getElementById("copy-msg").classList.remove("show");
+        }
+    </script>
+</body>
+
+</html>
